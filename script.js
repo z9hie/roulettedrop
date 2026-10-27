@@ -1,6 +1,49 @@
 (function(){
   "use strict";
 
+  /* ================= TELEGRAM ================= */
+  var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+  var tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
+
+  // Отладка: видно в консоли (в TG через удалённую отладку)
+  try {
+    console.log("Telegram.WebApp:", tg ? "OK" : "NOT FOUND");
+    if (tg) {
+      console.log("initData length:", (tg.initData || "").length);
+      console.log("initDataUnsafe:", tg.initDataUnsafe);
+      console.log("user:", tgUser);
+    }
+  } catch(e){}
+
+  var me;
+  var sourceLabel;
+
+  if (tgUser){
+    me = {
+      id: tgUser.id,
+      firstName: tgUser.first_name || "",
+      lastName: tgUser.last_name || "",
+      username: tgUser.username || "",
+      photoUrl: tgUser.photo_url || ""
+    };
+    sourceLabel = "Telegram";
+  } else {
+    me = {
+      id: 100000001,
+      firstName: "Alex",
+      lastName: "K.",
+      username: "alexk",
+      photoUrl: ""
+    };
+    sourceLabel = tg ? "Telegram (no user)" : "Browser (demo)";
+  }
+
+  if (tg){
+    try { tg.ready(); } catch(e){}
+    try { tg.expand(); } catch(e){}
+  }
+
+  /* ================= CONST ================= */
   var SECTORS = [
     { type:"black", mult:0 },
     { type:"blue",  mult:2 },
@@ -19,7 +62,7 @@
   var MIN_BET = 10;
   var MAX_BET = 500;
 
-  /* ---------- DOM ---------- */
+  /* ================= DOM ================= */
   var feedList    = document.getElementById("feedList");
   var rotor       = document.getElementById("rotor");
   var spinBtn     = document.getElementById("spinBtn");
@@ -37,41 +80,28 @@
   var profileUsername = document.getElementById("profileUsername");
   var profileBalance  = document.getElementById("profileBalance");
   var profileIdEl     = document.getElementById("profileId");
+  var profileSource   = document.getElementById("profileSource");
   var copyIdBtn       = document.getElementById("copyIdBtn");
 
-  /* ---------- STATE ---------- */
+  /* ================= STATE ================= */
   var balance = 1240;
   var bet = 50;
   var spinning = false;
   var currentRotation = 0;
   var finishTimer = null;
 
-  // Пока "фейковый" текущий юзер. Позже заменим данными из Telegram initData.
-  var me = {
-    id: 100000001,
-    firstName: "Alex",
-    lastName: "K.",
-    username: "alexk",
-    photoUrl: "" // если появится URL — покажем картинку
-  };
-
   function fmt(n){ return n.toLocaleString("ru-RU").replace(/,/g," "); }
 
-  /* ================= АВАТАРКИ ================= */
-  // Стабильный цвет по строке
+  /* ================= AVATARS ================= */
   function colorFromString(str){
     var h = 0;
-    for (var i=0;i<str.length;i++){
-      h = (h * 31 + str.charCodeAt(i)) >>> 0;
-    }
+    for (var i=0;i<str.length;i++){ h = (h * 31 + str.charCodeAt(i)) >>> 0; }
     var hue = h % 360;
-    // два цвета одной палитры для градиента
     return {
       a: "hsl(" + hue + ", 42%, 38%)",
       b: "hsl(" + ((hue + 28) % 360) + ", 46%, 24%)"
     };
   }
-
   function initialsFromName(name){
     if (!name) return "?";
     var parts = name.trim().split(/\s+/).filter(Boolean);
@@ -79,103 +109,100 @@
     if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
     return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
   }
-
-  // Возвращает DOM-элемент аватара
   function makeAvatar(opts){
     var el = document.createElement("div");
     el.className = "avatar " + (opts.size || "");
-    el.style.setProperty("--size", null); // размер задаётся классом
     var name = opts.name || "";
     var url  = opts.photoUrl || "";
-
     if (url){
       var img = document.createElement("img");
-      img.src = url;
-      img.alt = name;
-      img.loading = "lazy";
+      img.src = url; img.alt = name; img.loading = "lazy";
+      // если фото не загрузилось — показываем инициалы
+      img.onerror = function(){
+        el.innerHTML = "";
+        var c = colorFromString(name || "user");
+        el.style.background = "linear-gradient(135deg, " + c.a + ", " + c.b + ")";
+        el.textContent = initialsFromName(name || "");
+      };
       el.appendChild(img);
     } else {
       var c = colorFromString(name || "user");
       el.style.background = "linear-gradient(135deg, " + c.a + ", " + c.b + ")";
-      el.textContent = initialsFromName(name);
+      el.textContent = initialsFromName(name || "");
     }
     return el;
   }
-
-  // Заполнить существующий .avatar (для профиля)
   function fillAvatar(el, opts){
     el.innerHTML = "";
-    if (opts.photoUrl){
+    var name = opts.name || "";
+    var url  = opts.photoUrl || "";
+    if (url){
       var img = document.createElement("img");
-      img.src = opts.photoUrl;
-      img.alt = opts.name || "";
+      img.src = url; img.alt = name;
+      img.onerror = function(){
+        el.innerHTML = "";
+        var c = colorFromString(name || "user");
+        el.style.background = "linear-gradient(135deg, " + c.a + ", " + c.b + ")";
+        el.textContent = initialsFromName(name || "");
+      };
       el.appendChild(img);
       return;
     }
-    var c = colorFromString(opts.name || "user");
+    var c = colorFromString(name || "user");
     el.style.background = "linear-gradient(135deg, " + c.a + ", " + c.b + ")";
-    el.textContent = initialsFromName(opts.name || "");
+    el.textContent = initialsFromName(name || "");
   }
 
-  /* ================= ПРОФИЛЬ ================= */
+  /* ================= PROFILE ================= */
   function renderProfile(){
     var fullName = (me.firstName + " " + (me.lastName || "")).trim();
     profileName.textContent = fullName || "Anonymous";
     profileUsername.textContent = me.username ? ("@" + me.username) : "@—";
     profileBalance.textContent = fmt(balance);
     profileIdEl.textContent = String(me.id);
+    if (profileSource) profileSource.textContent = sourceLabel;
     fillAvatar(profileAvatar, { name: fullName, photoUrl: me.photoUrl });
   }
 
   copyIdBtn.addEventListener("click", function(){
     var text = String(me.id);
+    var done = function(){
+      copyIdBtn.textContent = "Скопировано";
+      setTimeout(function(){
+        copyIdBtn.innerHTML = '<svg class="ico"><use href="#i-copy"/></svg> Скопировать ID';
+      }, 1200);
+    };
     if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(function(){
-        copyIdBtn.textContent = "Скопировано";
-        setTimeout(function(){
-          copyIdBtn.innerHTML = '<svg class="ico"><use href="#i-copy"/></svg> Скопировать ID';
-        }, 1200);
-      });
+      navigator.clipboard.writeText(text).then(done).catch(done);
     } else {
-      // fallback
       var ta = document.createElement("textarea");
       ta.value = text;
       document.body.appendChild(ta);
       ta.select();
       try { document.execCommand("copy"); } catch(e){}
       document.body.removeChild(ta);
-      copyIdBtn.textContent = "Скопировано";
-      setTimeout(function(){
-        copyIdBtn.innerHTML = '<svg class="ico"><use href="#i-copy"/></svg> Скопировать ID';
-      }, 1200);
+      done();
     }
   });
 
-  /* ================= НАВИГАЦИЯ ================= */
+  /* ================= NAV ================= */
   function setView(name){
-    // скрыть все, показать нужный
     var views = document.querySelectorAll(".view");
     for (var i=0;i<views.length;i++){
       views[i].classList.toggle("is-active", views[i].id === ("view-" + name));
     }
-    // активный таб
     var tabs = tabbar.querySelectorAll(".tab");
     for (var j=0;j<tabs.length;j++){
       tabs[j].classList.toggle("active", tabs[j].getAttribute("data-view") === name);
     }
     if (name === "profile") renderProfile();
   }
-
   tabbar.addEventListener("click", function(e){
     var link = e.target.closest(".tab");
     if (!link) return;
     e.preventDefault();
     var view = link.getAttribute("data-view");
-    if (view === "inventory" || view === "top"){
-      // пока заглушки: просто остаёмся на Play
-      // (позже добавим экраны)
-      return;
-    }
+    if (view === "inventory" || view === "top") return; // заглушки
     setView(view);
   });
 
@@ -184,7 +211,6 @@
   function multClass(mult){ return mult === 0 ? "lose" : mult === 2 ? "win" : "jack"; }
   function multIcon(mult){ return mult === 0 ? "i-x" : mult === 2 ? "i-bolt" : "i-crown"; }
 
-  // Данные людей для ленты. Пока демо. Позже — из бэкенда.
   var DEMO_USERS = [
     { name:"Frog Lover",  username:"froglover",  photoUrl:"" },
     { name:"Duck Hunter", username:"duckhunter", photoUrl:"" },
@@ -204,15 +230,12 @@
     var priceText = payout > 0 ? ("+ " + fmt(payout)) : ("− " + fmt(data.bet));
     var priceCls = multClass(data.mult);
 
-    // аватар: если isNew и есть me — мой, иначе из DEMO_USERS
     var user = data.user || null;
     var avatarName = user ? user.name : (data.userName || "Player");
     var avatarUrl  = user ? user.photoUrl : (data.photoUrl || "");
     var avatar = makeAvatar({ name: avatarName, photoUrl: avatarUrl, size: "avatar-md" });
 
-    var titleText = user
-      ? (user.name || "Player") + " · " + multLabel(data.mult)
-      : (data.userName || "Player") + " · " + multLabel(data.mult);
+    var titleText = (avatarName) + " · " + multLabel(data.mult);
 
     row.appendChild(avatar);
 
@@ -236,18 +259,16 @@
   }
 
   function seedFeed(){
-    var seed = [
+    [
       { mult:3, bet:50,  time:"2 min ago", user: DEMO_USERS[5] },
       { mult:2, bet:100, time:"4 min ago", user: DEMO_USERS[2] },
       { mult:0, bet:50,  time:"7 min ago", user: DEMO_USERS[0] }
-    ];
-    seed.forEach(function(s){ feedList.appendChild(buildFeedRow(s, { time: s.time })); });
+    ].forEach(function(s){ feedList.appendChild(buildFeedRow(s, { time: s.time })); });
   }
 
   function pushMyDrop(data){
     var row = buildFeedRow(data, { isNew: true });
     feedList.prepend(row);
-
     var rows = Array.prototype.slice.call(feedList.children);
     if (rows.length > 4){
       var last = rows[rows.length - 1];
@@ -257,7 +278,7 @@
     setTimeout(function(){ row.classList.remove("is-new"); }, 2500);
   }
 
-  /* ================= WHEEL CENTER ================= */
+  /* ================= CENTER ================= */
   function setCenterIdle(){
     wheelCenter.classList.remove("result");
     wheelCenter.innerHTML =
@@ -297,16 +318,13 @@
     return 0;
   }
 
-  /* ================= BET ================= */
+  /* ================= BALANCE / BET ================= */
   function updateBalance(){
     balanceEl.textContent = fmt(balance);
-    profileBalance.textContent = fmt(balance);
+    if (profileBalance) profileBalance.textContent = fmt(balance);
   }
   function updateSpinLabel(){ spinLabel.textContent = "Spin · " + fmt(bet) + " gram"; }
-  function setBetMsg(text, cls){
-    betMsg.textContent = text || "";
-    betMsg.className = cls || "";
-  }
+  function setBetMsg(text, cls){ betMsg.textContent = text || ""; betMsg.className = cls || ""; }
 
   function validateBetValue(raw){
     var v = parseInt(raw, 10);
@@ -316,7 +334,6 @@
     if (v > balance) return { ok:false, err:"Недостаточно средств" };
     return { ok:true, value:v };
   }
-
   function applyBetLive(silent){
     if (spinning) return false;
     var res = validateBetValue(betInput.value);
@@ -332,17 +349,13 @@
     if (!silent) setBetMsg("", "");
     return true;
   }
-
   betInput.addEventListener("input", function(){
     betWrap.classList.remove("invalid");
     setBetMsg("", "");
   });
   betInput.addEventListener("blur", function(){ applyBetLive(true); });
   betInput.addEventListener("keydown", function(e){
-    if (e.key === "Enter"){
-      e.preventDefault();
-      if (applyBetLive(false)) spin();
-    }
+    if (e.key === "Enter"){ e.preventDefault(); if (applyBetLive(false)) spin(); }
   });
 
   /* ================= SPIN ================= */
@@ -410,7 +423,6 @@
     };
     rotor.addEventListener("transitionend", onEnd);
   }
-
   spinBtn.addEventListener("click", spin);
 
   /* ================= INIT ================= */
