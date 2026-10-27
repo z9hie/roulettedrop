@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>roulettedrop — MVP</title>
 <link rel="stylesheet" href="style.css" />
+<!-- Telegram WebApp SDK: подключаем ДО script.js -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -71,7 +73,7 @@
       </div>
     </header>
 
-    <!-- ================= PLAY ================= -->
+    <!-- PLAY -->
     <section class="view view-play is-active" id="view-play">
       <div class="play-grid">
         <section class="glass wheel-card">
@@ -122,7 +124,7 @@
       </div>
     </section>
 
-    <!-- ================= PROFILE ================= -->
+    <!-- PROFILE -->
     <section class="view view-profile" id="view-profile">
       <div class="glass profile-card">
         <div class="profile-head">
@@ -145,6 +147,10 @@
             <span class="profile-key">ID</span>
             <span class="profile-val" id="profileId">—</span>
           </div>
+          <div class="profile-row">
+            <span class="profile-key">Источник</span>
+            <span class="profile-val" id="profileSource">—</span>
+          </div>
         </div>
 
         <button class="btn btn-ghost profile-copy" id="copyIdBtn">
@@ -154,7 +160,7 @@
       </div>
     </section>
 
-    <!-- ================= TABBAR ================= -->
+    <!-- TABBAR -->
     <nav class="glass tabbar" id="tabbar">
       <a class="tab active" data-view="play" href="#">
         <svg class="ico"><use href="#i-spin"/></svg>Play
