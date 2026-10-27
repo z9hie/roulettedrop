@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>roulettedrop — MVP</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- SVG sprite -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-spin" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8"/><path d="M12 4v3"/><path d="M12 17v3"/>
+        <path d="M4 12h3"/><path d="M17 12h3"/>
+      </symbol>
+      <symbol id="i-coin" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8"/><path d="M12 7.5v9"/>
+        <path d="M9.5 10.5c.4-1 1.3-1.6 2.5-1.6 1.5 0 2.5.8 2.5 1.9 0 2.7-5 1.3-5 4 0 1.1 1 1.9 2.5 1.9 1.2 0 2.1-.6 2.5-1.6"/>
+      </symbol>
+      <symbol id="i-trophy" viewBox="0 0 24 24">
+        <path d="M7 4h10v3a5 5 0 0 1-10 0V4z"/><path d="M7 5H4a3 3 0 0 0 3 3"/>
+        <path d="M17 5h3a3 3 0 0 1-3 3"/><path d="M12 12v3"/><path d="M9 20h6"/>
+        <path d="M10 17h4l.5 3h-5l.5-3z"/>
+      </symbol>
+      <symbol id="i-inventory" viewBox="0 0 24 24">
+        <path d="M6 9a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9z"/>
+        <path d="M9 9V7a3 3 0 0 1 6 0v2"/><path d="M9 14h6"/>
+      </symbol>
+      <symbol id="i-user" viewBox="0 0 24 24">
+        <circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/>
+      </symbol>
+      <symbol id="i-crown" viewBox="0 0 24 24">
+        <path d="M4 18h16"/><path d="M5 18l-1.2-8 4.7 3L12 6l3.5 7 4.7-3L19 18"/>
+      </symbol>
+      <symbol id="i-bolt" viewBox="0 0 24 24">
+        <path d="M13 3l-7 10h5l-1 8 7-10h-5l1-8z"/>
+      </symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24">
+        <path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>
+      </symbol>
+      <symbol id="i-target" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>
+        <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>
+      </symbol>
+      <symbol id="i-drop" viewBox="0 0 24 24">
+        <path d="M12 4c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/>
+      </symbol>
+      <symbol id="i-x" viewBox="0 0 24 24">
+        <path d="M6 6l12 12"/><path d="M18 6L6 18"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <main class="phone">
+    <header class="glass topbar">
+      <div class="brand">
+        <div class="brand-mark"><svg class="ico"><use href="#i-spin"/></svg></div>
+        <div>
+          <div class="brand-name">roulettedrop</div>
+          <div class="brand-sub">NFT gifts · Telegram</div>
+        </div>
+      </div>
+      <div class="balance">
+        <svg class="ico ico-sm"><use href="#i-coin"/></svg>
+        <span id="balance">1 240</span>
+        <span class="unit">gram</span>
+      </div>
+    </header>
+
+    <section class="glass wheel-card">
+      <div class="section-title" style="padding:0 2px 10px;">
+        <h2><svg class="ico"><use href="#i-target"/></svg> Main roulette</h2>
+        <span class="pill"><svg class="ico"><use href="#i-bolt"/></svg> Live</span>
+      </div>
+      <div class="wheel-wrap">
+        <div class="pointer"></div>
+        <div class="wheel-rotor" id="rotor">
+          <div class="wheel"></div>
+        </div>
+        <div class="wheel-center" id="wheelCenter">
+          <svg class="ico"><use href="#i-target"/></svg>
+          <span class="label">Ready</span>
+          <span class="value">Place bet</span>
+        </div>
+      </div>
+
+      <div class="bet-row">
+        <span class="bet-label"><svg class="ico"><use href="#i-coin"/></svg> Bet</span>
+        <div class="bet-input-wrap" id="betWrap">
+          <svg class="ico"><use href="#i-coin"/></svg>
+          <input class="bet-input" id="betInput" type="number" inputmode="numeric" min="10" max="500" step="1" placeholder="10–500" value="50" />
+          <span class="unit">gram</span>
+        </div>
+      </div>
+      <div class="bet-hint">
+        <span>Ставка: <b id="betCurrent">50</b> gram</span>
+        <span id="betMsg"></span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="spinBtn">
+          <svg class="ico"><use href="#i-spin"/></svg>
+          <span id="spinLabel">Spin · 50 gram</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="feed">
+      <div class="section-title" style="padding:0 4px;">
+        <h2><svg class="ico"><use href="#i-drop"/></svg> Latest drops</h2>
+        <a href="#"><span>All</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+      </div>
+      <div class="feed-list" id="feedList"></div>
+    </section>
+
+    <nav class="glass tabbar">
+      <a class="tab active" href="#"><svg class="ico"><use href="#i-spin"/></svg>Play</a>
+      <a class="tab" href="#"><svg class="ico"><use href="#i-inventory"/></svg>Inventory</a>
+      <a class="tab" href="#"><svg class="ico"><use href="#i-trophy"/></svg>Top</a>
+      <a class="tab" href="#"><svg class="ico"><use href="#i-user"/></svg>Profile</a>
+    </nav>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
