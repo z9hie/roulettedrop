@@ -16,10 +16,10 @@
     { type:"blue",  mult:2 }
   ];
   var SECTOR_ANGLE = 360 / SECTORS.length;
-
   var MIN_BET = 10;
   var MAX_BET = 500;
 
+  /* ---------- DOM ---------- */
   var feedList    = document.getElementById("feedList");
   var rotor       = document.getElementById("rotor");
   var spinBtn     = document.getElementById("spinBtn");
@@ -30,95 +30,218 @@
   var betWrap     = document.getElementById("betWrap");
   var betCurrent  = document.getElementById("betCurrent");
   var betMsg      = document.getElementById("betMsg");
+  var tabbar      = document.getElementById("tabbar");
 
+  var profileAvatar   = document.getElementById("profileAvatar");
+  var profileName     = document.getElementById("profileName");
+  var profileUsername = document.getElementById("profileUsername");
+  var profileBalance  = document.getElementById("profileBalance");
+  var profileIdEl     = document.getElementById("profileId");
+  var copyIdBtn       = document.getElementById("copyIdBtn");
+
+  /* ---------- STATE ---------- */
   var balance = 1240;
   var bet = 50;
   var spinning = false;
   var currentRotation = 0;
   var finishTimer = null;
 
+  // Пока "фейковый" текущий юзер. Позже заменим данными из Telegram initData.
+  var me = {
+    id: 100000001,
+    firstName: "Alex",
+    lastName: "K.",
+    username: "alexk",
+    photoUrl: "" // если появится URL — покажем картинку
+  };
+
   function fmt(n){ return n.toLocaleString("ru-RU").replace(/,/g," "); }
 
-  function updateBalance(){ balanceEl.textContent = fmt(balance); }
-  function updateSpinLabel(){ spinLabel.textContent = "Spin · " + fmt(bet) + " gram"; }
-  function setBetMsg(text, cls){
-    betMsg.textContent = text || "";
-    betMsg.className = cls || "";
-  }
-
-  function validateBetValue(raw){
-    var v = parseInt(raw, 10);
-    if (!raw || isNaN(v)) return { ok:false, err:"Введите ставку" };
-    if (v < MIN_BET) return { ok:false, err:"Мин. " + MIN_BET };
-    if (v > MAX_BET) return { ok:false, err:"Макс. " + MAX_BET };
-    if (v > balance) return { ok:false, err:"Недостаточно средств" };
-    return { ok:true, value:v };
-  }
-
-  function applyBetLive(silent){
-    if (spinning) return false;
-    var res = validateBetValue(betInput.value);
-    if (!res.ok){
-      betWrap.classList.add("invalid");
-      if (!silent) setBetMsg(res.err, "err");
-      return false;
+  /* ================= АВАТАРКИ ================= */
+  // Стабильный цвет по строке
+  function colorFromString(str){
+    var h = 0;
+    for (var i=0;i<str.length;i++){
+      h = (h * 31 + str.charCodeAt(i)) >>> 0;
     }
-    betWrap.classList.remove("invalid");
-    bet = res.value;
-    betCurrent.textContent = fmt(bet);
-    updateSpinLabel();
-    if (!silent) setBetMsg("", "");
-    return true;
+    var hue = h % 360;
+    // два цвета одной палитры для градиента
+    return {
+      a: "hsl(" + hue + ", 42%, 38%)",
+      b: "hsl(" + ((hue + 28) % 360) + ", 46%, 24%)"
+    };
   }
 
-  betInput.addEventListener("input", function(){
-    betWrap.classList.remove("invalid");
-    setBetMsg("", "");
-  });
-  betInput.addEventListener("blur", function(){
-    applyBetLive(true);
-  });
-  betInput.addEventListener("keydown", function(e){
-    if (e.key === "Enter"){
-      e.preventDefault();
-      if (applyBetLive(false)) spin();
+  function initialsFromName(name){
+    if (!name) return "?";
+    var parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "?";
+    if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+    return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+  }
+
+  // Возвращает DOM-элемент аватара
+  function makeAvatar(opts){
+    var el = document.createElement("div");
+    el.className = "avatar " + (opts.size || "");
+    el.style.setProperty("--size", null); // размер задаётся классом
+    var name = opts.name || "";
+    var url  = opts.photoUrl || "";
+
+    if (url){
+      var img = document.createElement("img");
+      img.src = url;
+      img.alt = name;
+      img.loading = "lazy";
+      el.appendChild(img);
+    } else {
+      var c = colorFromString(name || "user");
+      el.style.background = "linear-gradient(135deg, " + c.a + ", " + c.b + ")";
+      el.textContent = initialsFromName(name);
+    }
+    return el;
+  }
+
+  // Заполнить существующий .avatar (для профиля)
+  function fillAvatar(el, opts){
+    el.innerHTML = "";
+    if (opts.photoUrl){
+      var img = document.createElement("img");
+      img.src = opts.photoUrl;
+      img.alt = opts.name || "";
+      el.appendChild(img);
+      return;
+    }
+    var c = colorFromString(opts.name || "user");
+    el.style.background = "linear-gradient(135deg, " + c.a + ", " + c.b + ")";
+    el.textContent = initialsFromName(opts.name || "");
+  }
+
+  /* ================= ПРОФИЛЬ ================= */
+  function renderProfile(){
+    var fullName = (me.firstName + " " + (me.lastName || "")).trim();
+    profileName.textContent = fullName || "Anonymous";
+    profileUsername.textContent = me.username ? ("@" + me.username) : "@—";
+    profileBalance.textContent = fmt(balance);
+    profileIdEl.textContent = String(me.id);
+    fillAvatar(profileAvatar, { name: fullName, photoUrl: me.photoUrl });
+  }
+
+  copyIdBtn.addEventListener("click", function(){
+    var text = String(me.id);
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){
+        copyIdBtn.textContent = "Скопировано";
+        setTimeout(function(){
+          copyIdBtn.innerHTML = '<svg class="ico"><use href="#i-copy"/></svg> Скопировать ID';
+        }, 1200);
+      });
+    } else {
+      // fallback
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } catch(e){}
+      document.body.removeChild(ta);
+      copyIdBtn.textContent = "Скопировано";
+      setTimeout(function(){
+        copyIdBtn.innerHTML = '<svg class="ico"><use href="#i-copy"/></svg> Скопировать ID';
+      }, 1200);
     }
   });
 
-  /* ---------- feed ---------- */
+  /* ================= НАВИГАЦИЯ ================= */
+  function setView(name){
+    // скрыть все, показать нужный
+    var views = document.querySelectorAll(".view");
+    for (var i=0;i<views.length;i++){
+      views[i].classList.toggle("is-active", views[i].id === ("view-" + name));
+    }
+    // активный таб
+    var tabs = tabbar.querySelectorAll(".tab");
+    for (var j=0;j<tabs.length;j++){
+      tabs[j].classList.toggle("active", tabs[j].getAttribute("data-view") === name);
+    }
+    if (name === "profile") renderProfile();
+  }
+
+  tabbar.addEventListener("click", function(e){
+    var link = e.target.closest(".tab");
+    if (!link) return;
+    e.preventDefault();
+    var view = link.getAttribute("data-view");
+    if (view === "inventory" || view === "top"){
+      // пока заглушки: просто остаёмся на Play
+      // (позже добавим экраны)
+      return;
+    }
+    setView(view);
+  });
+
+  /* ================= FEED ================= */
   function multLabel(mult){ return mult === 0 ? "x0" : ("x" + mult); }
   function multClass(mult){ return mult === 0 ? "lose" : mult === 2 ? "win" : "jack"; }
   function multIcon(mult){ return mult === 0 ? "i-x" : mult === 2 ? "i-bolt" : "i-crown"; }
 
+  // Данные людей для ленты. Пока демо. Позже — из бэкенда.
+  var DEMO_USERS = [
+    { name:"Frog Lover",  username:"froglover",  photoUrl:"" },
+    { name:"Duck Hunter", username:"duckhunter", photoUrl:"" },
+    { name:"Gorilla",     username:"gorilla_gg", photoUrl:"" },
+    { name:"Snake Eyes",  username:"snakeeyes",  photoUrl:"" },
+    { name:"Tiger",       username:"tigerwin",   photoUrl:"" },
+    { name:"King",        username:"kingdrop",   photoUrl:"" },
+    { name:"Owl",         username:"owlwise",    photoUrl:"" },
+    { name:"Wolf",        username:"wolfpack",   photoUrl:"" }
+  ];
+
   function buildFeedRow(data, opts){
     var row = document.createElement("div");
     row.className = "feed-row" + (opts && opts.isNew ? " is-new enter" : "");
+
     var payout = data.mult * data.bet;
     var priceText = payout > 0 ? ("+ " + fmt(payout)) : ("− " + fmt(data.bet));
     var priceCls = multClass(data.mult);
-    row.innerHTML =
-      '<div class="feed-avatar ' + (data.mult === 3 ? "legend" : data.mult === 2 ? "rare" : "") + '">' +
-        '<svg class="ico"><use href="#' + multIcon(data.mult) + '"/></svg>' +
-      '</div>' +
-      '<div class="feed-main">' +
-        '<div class="feed-title">' + multLabel(data.mult) + ' · bet ' + fmt(data.bet) + '</div>' +
-        '<div class="feed-sub">' +
-          '<svg class="ico"><use href="#i-coin"/></svg>' +
-          (opts && opts.isNew ? "You · just now" : (opts && opts.time ? opts.time : "just now")) +
-        '</div>' +
-      '</div>' +
-      '<div class="feed-price ' + priceCls + '">' +
-        '<svg class="ico"><use href="#' + (payout > 0 ? "i-coin" : "i-x") + '"/></svg> ' + priceText +
+
+    // аватар: если isNew и есть me — мой, иначе из DEMO_USERS
+    var user = data.user || null;
+    var avatarName = user ? user.name : (data.userName || "Player");
+    var avatarUrl  = user ? user.photoUrl : (data.photoUrl || "");
+    var avatar = makeAvatar({ name: avatarName, photoUrl: avatarUrl, size: "avatar-md" });
+
+    var titleText = user
+      ? (user.name || "Player") + " · " + multLabel(data.mult)
+      : (data.userName || "Player") + " · " + multLabel(data.mult);
+
+    row.appendChild(avatar);
+
+    var main = document.createElement("div");
+    main.className = "feed-main";
+    main.innerHTML =
+      '<div class="feed-title">' + titleText + '</div>' +
+      '<div class="feed-sub">' +
+        '<svg class="ico"><use href="#i-coin"/></svg>' +
+        (opts && opts.isNew ? "You · just now" : (opts && opts.time ? opts.time : "just now")) +
       '</div>';
+    row.appendChild(main);
+
+    var price = document.createElement("div");
+    price.className = "feed-price " + priceCls;
+    price.innerHTML =
+      '<svg class="ico"><use href="#' + (payout > 0 ? "i-coin" : "i-x") + '"/></svg> ' + priceText;
+    row.appendChild(price);
+
     return row;
   }
 
   function seedFeed(){
-    [
-      { mult:3, bet:50,  time:"2 min ago" },
-      { mult:2, bet:100, time:"4 min ago" },
-      { mult:0, bet:50,  time:"7 min ago" }
-    ].forEach(function(s){ feedList.appendChild(buildFeedRow(s, { time: s.time })); });
+    var seed = [
+      { mult:3, bet:50,  time:"2 min ago", user: DEMO_USERS[5] },
+      { mult:2, bet:100, time:"4 min ago", user: DEMO_USERS[2] },
+      { mult:0, bet:50,  time:"7 min ago", user: DEMO_USERS[0] }
+    ];
+    seed.forEach(function(s){ feedList.appendChild(buildFeedRow(s, { time: s.time })); });
   }
 
   function pushMyDrop(data){
@@ -134,7 +257,7 @@
     setTimeout(function(){ row.classList.remove("is-new"); }, 2500);
   }
 
-  /* ---------- center ---------- */
+  /* ================= WHEEL CENTER ================= */
   function setCenterIdle(){
     wheelCenter.classList.remove("result");
     wheelCenter.innerHTML =
@@ -174,7 +297,55 @@
     return 0;
   }
 
-  /* ---------- spin ---------- */
+  /* ================= BET ================= */
+  function updateBalance(){
+    balanceEl.textContent = fmt(balance);
+    profileBalance.textContent = fmt(balance);
+  }
+  function updateSpinLabel(){ spinLabel.textContent = "Spin · " + fmt(bet) + " gram"; }
+  function setBetMsg(text, cls){
+    betMsg.textContent = text || "";
+    betMsg.className = cls || "";
+  }
+
+  function validateBetValue(raw){
+    var v = parseInt(raw, 10);
+    if (!raw || isNaN(v)) return { ok:false, err:"Введите ставку" };
+    if (v < MIN_BET) return { ok:false, err:"Мин. " + MIN_BET };
+    if (v > MAX_BET) return { ok:false, err:"Макс. " + MAX_BET };
+    if (v > balance) return { ok:false, err:"Недостаточно средств" };
+    return { ok:true, value:v };
+  }
+
+  function applyBetLive(silent){
+    if (spinning) return false;
+    var res = validateBetValue(betInput.value);
+    if (!res.ok){
+      betWrap.classList.add("invalid");
+      if (!silent) setBetMsg(res.err, "err");
+      return false;
+    }
+    betWrap.classList.remove("invalid");
+    bet = res.value;
+    betCurrent.textContent = fmt(bet);
+    updateSpinLabel();
+    if (!silent) setBetMsg("", "");
+    return true;
+  }
+
+  betInput.addEventListener("input", function(){
+    betWrap.classList.remove("invalid");
+    setBetMsg("", "");
+  });
+  betInput.addEventListener("blur", function(){ applyBetLive(true); });
+  betInput.addEventListener("keydown", function(e){
+    if (e.key === "Enter"){
+      e.preventDefault();
+      if (applyBetLive(false)) spin();
+    }
+  });
+
+  /* ================= SPIN ================= */
   function finishSpin(targetItem, betAtSpin){
     if (!spinning) return;
     spinning = false;
@@ -188,7 +359,13 @@
     updateBalance();
 
     setCenterResult(targetItem, payout);
-    pushMyDrop({ mult: targetItem.mult, bet: betAtSpin });
+
+    var fullName = (me.firstName + " " + (me.lastName || "")).trim();
+    pushMyDrop({
+      mult: targetItem.mult,
+      bet: betAtSpin,
+      user: { name: fullName, username: me.username, photoUrl: me.photoUrl }
+    });
 
     setTimeout(function(){ if (!spinning) setCenterIdle(); }, 2500);
   }
@@ -204,7 +381,6 @@
 
     balance -= bet;
     updateBalance();
-
     setCenterSpinning();
 
     var idx = pickRandomIndex();
@@ -220,7 +396,6 @@
     currentRotation = desired;
 
     var duration = 4200 + Math.random() * 800;
-
     void rotor.offsetWidth;
 
     rotor.style.transition = "transform " + duration + "ms cubic-bezier(.12,.72,.12,1)";
@@ -238,8 +413,10 @@
 
   spinBtn.addEventListener("click", spin);
 
+  /* ================= INIT ================= */
   seedFeed();
   updateBalance();
   betCurrent.textContent = fmt(bet);
   updateSpinLabel();
+  renderProfile();
 })();
