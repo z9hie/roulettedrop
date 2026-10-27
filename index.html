@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- SVG sprite -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
       <symbol id="i-spin" viewBox="0 0 24 24">
@@ -49,6 +48,10 @@
       <symbol id="i-x" viewBox="0 0 24 24">
         <path d="M6 6l12 12"/><path d="M18 6L6 18"/>
       </symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24">
+        <rect x="8" y="8" width="11" height="11" rx="2"/>
+        <path d="M5 15V6a2 2 0 0 1 2-2h9"/>
+      </symbol>
     </defs>
   </svg>
 
@@ -68,60 +71,106 @@
       </div>
     </header>
 
-    <section class="glass wheel-card">
-      <div class="section-title" style="padding:0 2px 10px;">
-        <h2><svg class="ico"><use href="#i-target"/></svg> Main roulette</h2>
-        <span class="pill"><svg class="ico"><use href="#i-bolt"/></svg> Live</span>
-      </div>
-      <div class="wheel-wrap">
-        <div class="pointer"></div>
-        <div class="wheel-rotor" id="rotor">
-          <div class="wheel"></div>
-        </div>
-        <div class="wheel-center" id="wheelCenter">
-          <svg class="ico"><use href="#i-target"/></svg>
-          <span class="label">Ready</span>
-          <span class="value">Place bet</span>
-        </div>
-      </div>
+    <!-- ================= PLAY ================= -->
+    <section class="view view-play is-active" id="view-play">
+      <div class="play-grid">
+        <section class="glass wheel-card">
+          <div class="section-title" style="padding:0 2px 10px;">
+            <h2><svg class="ico"><use href="#i-target"/></svg> Main roulette</h2>
+            <span class="pill"><svg class="ico"><use href="#i-bolt"/></svg> Live</span>
+          </div>
+          <div class="wheel-wrap">
+            <div class="pointer"></div>
+            <div class="wheel-rotor" id="rotor">
+              <div class="wheel"></div>
+            </div>
+            <div class="wheel-center" id="wheelCenter">
+              <svg class="ico"><use href="#i-target"/></svg>
+              <span class="label">Ready</span>
+              <span class="value">Place bet</span>
+            </div>
+          </div>
 
-      <div class="bet-row">
-        <span class="bet-label"><svg class="ico"><use href="#i-coin"/></svg> Bet</span>
-        <div class="bet-input-wrap" id="betWrap">
-          <svg class="ico"><use href="#i-coin"/></svg>
-          <input class="bet-input" id="betInput" type="number" inputmode="numeric" min="10" max="500" step="1" placeholder="10–500" value="50" />
-          <span class="unit">gram</span>
-        </div>
-      </div>
-      <div class="bet-hint">
-        <span>Ставка: <b id="betCurrent">50</b> gram</span>
-        <span id="betMsg"></span>
-      </div>
+          <div class="bet-row">
+            <span class="bet-label"><svg class="ico"><use href="#i-coin"/></svg> Bet</span>
+            <div class="bet-input-wrap" id="betWrap">
+              <svg class="ico"><use href="#i-coin"/></svg>
+              <input class="bet-input" id="betInput" type="number" inputmode="numeric" min="10" max="500" step="1" placeholder="10–500" value="50" />
+              <span class="unit">gram</span>
+            </div>
+          </div>
+          <div class="bet-hint">
+            <span>Ставка: <b id="betCurrent">50</b> gram</span>
+            <span id="betMsg"></span>
+          </div>
 
-      <div class="actions">
-        <button class="btn btn-primary" id="spinBtn">
-          <svg class="ico"><use href="#i-spin"/></svg>
-          <span id="spinLabel">Spin · 50 gram</span>
+          <div class="actions">
+            <button class="btn btn-primary" id="spinBtn">
+              <svg class="ico"><use href="#i-spin"/></svg>
+              <span id="spinLabel">Spin · 50 gram</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="feed">
+          <div class="section-title" style="padding:0 4px;">
+            <h2><svg class="ico"><use href="#i-drop"/></svg> Latest drops</h2>
+            <a href="#"><span>All</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+          </div>
+          <div class="feed-list" id="feedList"></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ================= PROFILE ================= -->
+    <section class="view view-profile" id="view-profile">
+      <div class="glass profile-card">
+        <div class="profile-head">
+          <div class="avatar avatar-xl" id="profileAvatar"></div>
+          <div class="profile-id">
+            <div class="profile-name" id="profileName">—</div>
+            <div class="profile-username" id="profileUsername">@—</div>
+          </div>
+        </div>
+
+        <div class="profile-rows">
+          <div class="profile-row">
+            <span class="profile-key">Balance</span>
+            <span class="profile-val">
+              <svg class="ico ico-sm" style="color:var(--gold)"><use href="#i-coin"/></svg>
+              <b id="profileBalance">1 240</b> gram
+            </span>
+          </div>
+          <div class="profile-row">
+            <span class="profile-key">ID</span>
+            <span class="profile-val" id="profileId">—</span>
+          </div>
+        </div>
+
+        <button class="btn btn-ghost profile-copy" id="copyIdBtn">
+          <svg class="ico"><use href="#i-copy"/></svg>
+          Скопировать ID
         </button>
       </div>
     </section>
 
-    <section class="feed">
-      <div class="section-title" style="padding:0 4px;">
-        <h2><svg class="ico"><use href="#i-drop"/></svg> Latest drops</h2>
-        <a href="#"><span>All</span><svg class="ico"><use href="#i-arrow"/></svg></a>
-      </div>
-      <div class="feed-list" id="feedList"></div>
-    </section>
-
-    <nav class="glass tabbar">
-      <a class="tab active" href="#"><svg class="ico"><use href="#i-spin"/></svg>Play</a>
-      <a class="tab" href="#"><svg class="ico"><use href="#i-inventory"/></svg>Inventory</a>
-      <a class="tab" href="#"><svg class="ico"><use href="#i-trophy"/></svg>Top</a>
-      <a class="tab" href="#"><svg class="ico"><use href="#i-user"/></svg>Profile</a>
+    <!-- ================= TABBAR ================= -->
+    <nav class="glass tabbar" id="tabbar">
+      <a class="tab active" data-view="play" href="#">
+        <svg class="ico"><use href="#i-spin"/></svg>Play
+      </a>
+      <a class="tab" data-view="inventory" href="#">
+        <svg class="ico"><use href="#i-inventory"/></svg>Inventory
+      </a>
+      <a class="tab" data-view="top" href="#">
+        <svg class="ico"><use href="#i-trophy"/></svg>Top
+      </a>
+      <a class="tab" data-view="profile" href="#">
+        <svg class="ico"><use href="#i-user"/></svg>Profile
+      </a>
     </nav>
   </main>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
