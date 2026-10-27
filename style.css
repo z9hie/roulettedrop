@@ -43,7 +43,7 @@ body{
   box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
 }
 
-/* ================= АВАТАРКИ ================= */
+/* AVATARS */
 .avatar{
   --size:36px;
   width:var(--size);height:var(--size);
@@ -62,27 +62,18 @@ body{
   box-shadow:inset 0 1px 0 rgba(255,255,255,.15), 0 4px 12px rgba(0,0,0,.35);
   user-select:none;
 }
-.avatar img{
-  width:100%;height:100%;object-fit:cover;display:block;
-}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block;}
 .avatar-sm{--size:32px;}
 .avatar-md{--size:40px;}
 .avatar-lg{--size:64px;}
 .avatar-xl{--size:88px;border-width:2px;}
-.avatar.ring::after{
-  content:"";position:absolute;inset:-4px;border-radius:50%;
-  border:2px solid rgba(57,210,192,.45);
-  pointer-events:none;
-}
 
-/* ================= БАЗА: телефон ================= */
+/* БАЗА: телефон */
 .phone{
   width:100%; max-width:430px; min-height:100dvh;
   padding:calc(14px + env(safe-area-inset-top)) 14px calc(96px + env(safe-area-inset-bottom));
   display:flex; flex-direction:column; gap:14px; position:relative;
 }
-
-/* topbar */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;}
 .brand{display:flex;align-items:center;gap:10px;}
 .brand-mark{
@@ -111,12 +102,12 @@ body{
 .section-title a{font-size:12px;color:var(--teal);text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
 .section-title a .ico{width:14px;height:14px;}
 
-/* ================= VIEWS ================= */
+/* VIEWS */
 .view{display:none;}
 .view.is-active{display:block;}
 .view-play .play-grid{display:flex;flex-direction:column;gap:14px;}
 
-/* ================= WHEEL ================= */
+/* WHEEL */
 .wheel-card{padding:16px;}
 .wheel-wrap{
   position:relative;aspect-ratio:1/1;border-radius:22px;overflow:hidden;
@@ -128,8 +119,7 @@ body{
 }
 .wheel-rotor{
   width:82%;aspect-ratio:1/1;position:relative;
-  will-change:transform;
-  transform:rotate(0deg);
+  will-change:transform;transform:rotate(0deg);
 }
 .wheel{
   width:100%;height:100%;border-radius:50%;position:relative;
@@ -175,7 +165,7 @@ body{
   filter:drop-shadow(0 4px 8px rgba(57,210,192,.5));z-index:3;
 }
 
-/* bet */
+/* BET */
 .bet-row{display:flex;align-items:center;gap:8px;margin-top:14px;}
 .bet-label{
   font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);
@@ -184,16 +174,13 @@ body{
 .bet-label .ico{width:14px;height:14px;color:var(--gold);}
 .bet-input-wrap{
   flex:1;display:flex;align-items:center;gap:8px;
-  background:rgba(0,0,0,.25);
-  border:1px solid var(--stroke);
-  border-radius:12px;
-  padding:0 10px;height:44px;
+  background:rgba(0,0,0,.25);border:1px solid var(--stroke);
+  border-radius:12px;padding:0 10px;height:44px;
 }
 .bet-input-wrap .ico{color:var(--gold);width:16px;height:16px;}
 .bet-input{
   flex:1;background:transparent;border:none;outline:none;
-  color:var(--text);font-size:15px;font-weight:700;
-  min-width:0;padding:0;
+  color:var(--text);font-size:15px;font-weight:700;min-width:0;padding:0;
 }
 .bet-input::placeholder{color:var(--muted);font-weight:600;}
 .bet-input-wrap.invalid{border-color:rgba(224,106,106,.5);}
@@ -223,7 +210,7 @@ body{
 .btn-primary:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none;}
 .btn-ghost{background:var(--glass-strong);color:var(--text);border:1px solid var(--stroke);}
 
-/* ================= FEED ================= */
+/* FEED */
 .feed{display:flex;flex-direction:column;gap:10px;}
 .feed-list{display:flex;flex-direction:column;gap:10px;}
 .feed-row{
@@ -257,18 +244,12 @@ body{
 .feed-price.lose{color:var(--muted);}
 .feed-price.jack{color:var(--gold);}
 
-/* ================= PROFILE ================= */
+/* PROFILE */
 .profile-card{padding:20px;display:flex;flex-direction:column;gap:18px;}
 .profile-head{display:flex;align-items:center;gap:16px;}
 .profile-id{min-width:0;flex:1;}
-.profile-name{
-  font-size:20px;font-weight:800;letter-spacing:.2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.profile-username{
-  font-size:13px;color:var(--teal);font-weight:600;margin-top:3px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
+.profile-name{font-size:20px;font-weight:800;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.profile-username{font-size:13px;color:var(--teal);font-weight:600;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .profile-rows{display:flex;flex-direction:column;gap:8px;}
 .profile-row{
   display:flex;align-items:center;justify-content:space-between;gap:10px;
@@ -280,7 +261,7 @@ body{
 .profile-val b{font-weight:800;}
 .profile-copy{width:100%;}
 
-/* ================= TABBAR ================= */
+/* TABBAR */
 .tabbar{
   position:fixed;left:50%;transform:translateX(-50%);
   bottom:calc(12px + env(safe-area-inset-bottom));
@@ -302,15 +283,13 @@ body{
 }
 .pill .ico{width:10px;height:10px;}
 
-/* ================= ПЛАНШЕТ ================= */
+/* АДАПТАЦИЯ */
 @media (min-width:600px){
   .phone{max-width:760px;padding:24px 24px 110px;gap:18px;}
   .wheel-card{padding:20px;}
   .wheel-wrap{max-width:420px;margin:0 auto;}
   .view-play .play-grid{gap:18px;}
 }
-
-/* ================= ПК ================= */
 @media (min-width:1024px){
   body{align-items:stretch;}
   .phone{
@@ -327,12 +306,7 @@ body{
   }
   .topbar{grid-area:topbar;padding:14px 16px;}
   .view.is-active{grid-area:content;display:block;}
-  .view-play .play-grid{
-    display:grid;
-    grid-template-columns: 1.15fr 1fr;
-    gap:22px 28px;
-    align-items:start;
-  }
+  .view-play .play-grid{display:grid;grid-template-columns: 1.15fr 1fr;gap:22px 28px;align-items:start;}
   .wheel-card{padding:24px;}
   .wheel-wrap{max-width:none;width:100%;}
   .profile-card{max-width:720px;margin:0 auto;}
@@ -356,8 +330,6 @@ body{
   .profile-name{font-size:22px;}
   .profile-username{font-size:14px;}
 }
-
-/* ================= БОЛЬШИЕ МОНИТОРЫ ================= */
 @media (min-width:1440px){
   .phone{max-width:1360px;padding:32px 40px 32px 132px;gap:26px 36px;}
   .wheel-card{padding:28px;}
@@ -367,8 +339,6 @@ body{
   .wheel-center .value{font-size:24px;}
   .avatar-xl{--size:104px;}
 }
-
-/* ================= УЗКИЕ ЭКРАНЫ ================= */
 @media (max-width:360px){
   .brand-sub{display:none;}
   .balance{padding:6px 10px;font-size:12px;}
@@ -376,7 +346,6 @@ body{
   .bet-row{flex-wrap:wrap;}
   .bet-label{width:100%;}
 }
-
 @media (prefers-reduced-motion: reduce){
   .feed-row.enter, .feed-row.leave{animation:none !important;}
 }
