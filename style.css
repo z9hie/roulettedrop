@@ -28,11 +28,12 @@ body{
   display:flex; justify-content:center;
   min-height:100dvh;
 }
-.phone{
-  width:100%; max-width:430px; min-height:100dvh;
-  padding:calc(14px + env(safe-area-inset-top)) 14px calc(96px + env(safe-area-inset-bottom));
-  display:flex; flex-direction:column; gap:14px; position:relative;
+.ico{
+  width:20px;height:20px;display:inline-block;flex:0 0 auto;
+  color:currentColor;fill:none;stroke:currentColor;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
 }
+.ico-sm{width:16px;height:16px;}
 .glass{
   background:linear-gradient(180deg, var(--glass-strong), var(--glass));
   border:1px solid var(--stroke);
@@ -41,13 +42,15 @@ body{
   -webkit-backdrop-filter:blur(16px) saturate(120%);
   box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
 }
-.ico{
-  width:20px;height:20px;display:inline-block;flex:0 0 auto;
-  color:currentColor;fill:none;stroke:currentColor;
-  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
-}
-.ico-sm{width:16px;height:16px;}
 
+/* ============ БАЗА: телефон ============ */
+.phone{
+  width:100%; max-width:430px; min-height:100dvh;
+  padding:calc(14px + env(safe-area-inset-top)) 14px calc(96px + env(safe-area-inset-bottom));
+  display:flex; flex-direction:column; gap:14px; position:relative;
+}
+
+/* topbar */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;}
 .brand{display:flex;align-items:center;gap:10px;}
 .brand-mark{
@@ -76,6 +79,7 @@ body{
 .section-title a{font-size:12px;color:var(--teal);text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
 .section-title a .ico{width:14px;height:14px;}
 
+/* wheel */
 .wheel-card{padding:16px;}
 .wheel-wrap{
   position:relative;aspect-ratio:1/1;border-radius:22px;overflow:hidden;
@@ -134,6 +138,7 @@ body{
   filter:drop-shadow(0 4px 8px rgba(57,210,192,.5));z-index:3;
 }
 
+/* bet */
 .bet-row{display:flex;align-items:center;gap:8px;margin-top:14px;}
 .bet-label{
   font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);
@@ -179,8 +184,8 @@ body{
 }
 .btn-primary .ico{stroke-width:2.2;}
 .btn-primary:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none;}
-.btn-ghost{background:var(--glass-strong);color:var(--text);border:1px solid var(--stroke);}
 
+/* feed */
 .feed{display:flex;flex-direction:column;gap:10px;}
 .feed-list{display:flex;flex-direction:column;gap:10px;}
 .feed-row{
@@ -222,6 +227,7 @@ body{
 .feed-price.lose{color:var(--muted);}
 .feed-price.jack{color:var(--gold);}
 
+/* tabbar (мобильный) */
 .tabbar{
   position:fixed;left:50%;transform:translateX(-50%);
   bottom:calc(12px + env(safe-area-inset-bottom));
@@ -242,6 +248,102 @@ body{
   background:var(--teal-dim);color:var(--teal);border:1px solid rgba(57,210,192,.25);
 }
 .pill .ico{width:10px;height:10px;}
+
+/* ============ ПЛАНШЕТ / МАЛЕНЬКИЙ НОУТБУК ============ */
+@media (min-width:600px){
+  .phone{
+    max-width:760px;
+    padding:24px 24px 110px;
+    gap:18px;
+  }
+  .wheel-card{padding:20px;}
+  .wheel-wrap{max-width:420px;margin:0 auto;}
+  .actions{grid-template-columns:1fr;}
+}
+
+/* ============ ПК / НОУТБУК ============ */
+@media (min-width:1024px){
+  body{align-items:stretch;}
+
+  /* контейнер: боковая панель слева + контент справа */
+  .phone{
+    max-width:1240px;
+    min-height:100vh;
+    padding:28px 32px 28px 124px; /* место под вертикальный таббар */
+    display:grid;
+    grid-template-columns: 1.15fr 1fr;
+    grid-template-areas:
+      "topbar topbar"
+      "wheel  feed";
+    grid-template-rows: auto 1fr;
+    gap:22px 28px;
+    align-items:start;
+  }
+
+  .topbar{grid-area:topbar; padding:14px 16px;}
+  .wheel-card{grid-area:wheel; padding:24px;}
+  .feed{grid-area:feed; align-self:start;}
+
+  .wheel-wrap{max-width:none;width:100%;}
+
+  /* таббар превращается в вертикальную боковую панель */
+  .tabbar{
+    position:fixed;
+    left:16px; top:50%;
+    transform:translateY(-50%);
+    bottom:auto;
+    width:88px;
+    max-width:none;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    padding:10px;
+    border-radius:22px;
+  }
+  .tab{
+    flex-direction:column;
+    gap:6px;
+    padding:12px 6px;
+    font-size:11px;
+  }
+  .tab .ico{width:22px;height:22px;}
+
+  /* чуть крупнее типографика на больших экранах */
+  .brand-name{font-size:16px;}
+  .balance{font-size:14px;padding:10px 14px;}
+  .section-title h2{font-size:13px;}
+  .feed-title{font-size:14px;}
+  .feed-sub{font-size:12px;}
+  .feed-price{font-size:13px;}
+  .feed-avatar{width:40px;height:40px;border-radius:12px;}
+  .feed-avatar .ico{width:20px;height:20px;}
+  .wheel-center .value{font-size:22px;}
+  .bet-input{font-size:16px;}
+  .btn{font-size:15px;min-height:52px;}
+}
+
+/* ============ БОЛЬШИЕ МОНИТОРЫ ============ */
+@media (min-width:1440px){
+  .phone{
+    max-width:1360px;
+    padding:32px 40px 32px 132px;
+    gap:26px 36px;
+  }
+  .wheel-card{padding:28px;}
+  .tabbar{width:96px;left:20px;}
+  .tab{padding:14px 6px;}
+  .tab .ico{width:24px;height:24px;}
+  .wheel-center .value{font-size:24px;}
+}
+
+/* ============ ОЧЕНЬ УЗКИЕ ТЕЛЕФОНЫ ============ */
+@media (max-width:360px){
+  .brand-sub{display:none;}
+  .balance{padding:6px 10px;font-size:12px;}
+  .wheel-card{padding:12px;}
+  .bet-row{flex-wrap:wrap;}
+  .bet-label{width:100%;}
+}
 
 @media (prefers-reduced-motion: reduce){
   .feed-row.enter, .feed-row.leave{animation:none !important;}
